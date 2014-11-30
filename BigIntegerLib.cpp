@@ -9,6 +9,9 @@
 #define UINTDECH_MAX	(uint64_t)(1e19 / 2)
 
 #define MACRO(i, x)		((i >= (x)->data.size) ? 0 : (x)->data.number[i])
+#ifndef MAX
+#define MAX(x, y)	((x > y) ? x : y)
+#endif
 
 namespace BigIntegerLib
 {
@@ -146,7 +149,7 @@ namespace BigIntegerLib
 			}
 
 			int overflow = 0;
-			for(size_t i = 0; i < max(data.size, number.data.size); i++)
+			for(size_t i = 0; i < MAX(data.size, number.data.size); i++)
 			{
 				uint64_t tmp;
 				if(i == data.size - 1) data.number = (uint64_t*)realloc(data.number, ++data.size + sizeof(uint64_t));
