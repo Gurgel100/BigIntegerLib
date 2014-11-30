@@ -2,10 +2,10 @@
 #include <iostream>
 #include <stdint.h>
 
-#ifdef win32
-#define dllexport	dllexport
+#if defined(_WIN32) || defined(_WIN64)
+#define prepend	__declspec(dllexport)
 #else
-#define dllexport
+#define prepend
 #endif
 
 #ifdef __cplusplus
@@ -20,50 +20,50 @@ namespace BigIntegerLib
 	class BigInt
 	{
 	public:
-		dllexport BigInt();
-		dllexport BigInt(const BigInt&);
-		dllexport BigInt(string);
-		dllexport BigInt(uint64_t);
-		dllexport ~BigInt();
+		prepend BigInt();
+		prepend BigInt(const BigInt&);
+		prepend BigInt(string);
+		prepend BigInt(uint64_t);
+		prepend ~BigInt();
 
-		dllexport void add(const BigInt&);
-		dllexport void sub(const BigInt&);
-		dllexport void mul(const BigInt&);
-		dllexport void div(const BigInt&);
+		prepend void add(const BigInt&);
+		prepend void sub(const BigInt&);
+		prepend void mul(const BigInt&);
+		prepend void div(const BigInt&);
 
-		dllexport string toStr();
+		prepend string toStr();
 
 		//Operators
-		dllexport BigInt& operator=(string);
-		dllexport BigInt& operator=(BigInt);
+		prepend BigInt& operator=(string);
+		prepend BigInt& operator=(BigInt);
 
-		dllexport BigInt operator+(string&);
-		dllexport BigInt operator+(BigInt&);
-		dllexport BigInt operator+(uint64_t);
-		dllexport BigInt& operator+=(string&);
-		dllexport BigInt& operator+=(BigInt&);
-		dllexport BigInt& operator+=(uint64_t);
+		prepend BigInt operator+(string&);
+		prepend BigInt operator+(BigInt&);
+		prepend BigInt operator+(uint64_t);
+		prepend BigInt& operator+=(string&);
+		prepend BigInt& operator+=(BigInt&);
+		prepend BigInt& operator+=(uint64_t);
 
-		dllexport BigInt operator-(string&);
-		dllexport BigInt operator-(BigInt&);
-		dllexport BigInt operator-(uint64_t&);
-		dllexport BigInt& operator-=(string&);
-		dllexport BigInt& operator-=(BigInt&);
-		dllexport BigInt& operator-=(uint64_t&);
+		prepend BigInt operator-(string&);
+		prepend BigInt operator-(BigInt&);
+		prepend BigInt operator-(uint64_t&);
+		prepend BigInt& operator-=(string&);
+		prepend BigInt& operator-=(BigInt&);
+		prepend BigInt& operator-=(uint64_t&);
 
-		dllexport BigInt operator*(string&);
-		dllexport BigInt operator*(BigInt&);
-		dllexport BigInt operator*(uint64_t);
-		dllexport BigInt& operator*=(string&);
-		dllexport BigInt& operator*=(BigInt&);
-		dllexport BigInt& operator*=(uint64_t);
+		prepend BigInt operator*(string&);
+		prepend BigInt operator*(BigInt&);
+		prepend BigInt operator*(uint64_t);
+		prepend BigInt& operator*=(string&);
+		prepend BigInt& operator*=(BigInt&);
+		prepend BigInt& operator*=(uint64_t);
 
-		dllexport BigInt operator/(string&);
-		dllexport BigInt operator/(BigInt&);
-		dllexport BigInt operator/(uint64_t&);
-		dllexport BigInt& operator/=(string&);
-		dllexport BigInt& operator/=(BigInt&);
-		dllexport BigInt& operator/=(uint64_t&);
+		prepend BigInt operator/(string&);
+		prepend BigInt operator/(BigInt&);
+		prepend BigInt operator/(uint64_t&);
+		prepend BigInt& operator/=(string&);
+		prepend BigInt& operator/=(BigInt&);
+		prepend BigInt& operator/=(uint64_t&);
 
 	private:
 		void setNum(string);

@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#ifndef __umul128
+#ifndef _WIN64
 typedef unsigned int __attribute__((__mode__(__TI__))) uint128_t;
 
 inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t *c)
