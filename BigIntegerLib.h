@@ -1,9 +1,8 @@
 
-
 #include <iostream>
 #include <stdint.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN64
 #define prepend	__declspec(dllexport)
 #else
 #define prepend
@@ -105,7 +104,6 @@ namespace BigIntegerLib
 		prepend bool operator>=(uint64_t);
 
 	private:
-		void setNum(string);
 		void convertNum(string);
 		void divHelp(BigInt&, BigInt&, BigInt&, BigInt&);
 

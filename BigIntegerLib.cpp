@@ -34,7 +34,7 @@ namespace BigIntegerLib
 		data.sign = 1;
 		data.size = 0;
 
-		setNum(number);
+		convertNum(number);
 	}
 
 	BigInt::BigInt(uint64_t number)
@@ -151,11 +151,10 @@ namespace BigIntegerLib
 			int overflow = 0;
 			for(size_t i = 0; i < MAX(data.size, number.data.size); i++)
 			{
-				uint64_t tmp;
-				if(i == data.size) data.number = (uint64_t*)realloc(data.number, ++data.size + sizeof(uint64_t));
-				tmp = MACRO(i, this) + MACRO(i, &number) + overflow;
+				uint64_t tmp = MACRO(i, this) + MACRO(i, &number) + overflow;
 				if(tmp - MACRO(i, this) - overflow != MACRO(i, &number)) overflow = 1;
 				else overflow = 0;
+				if (i == data.size) data.number = (uint64_t*)realloc(data.number, ++data.size * sizeof(uint64_t));
 				this->data.number[i] = tmp;
 			}
 
@@ -251,7 +250,7 @@ namespace BigIntegerLib
 	{
 
 		//Make a copy
-		BigInt tmp(number);
+		BigInt tmp(*this);
 
 		//Reset local
 		for (size_t i = 0; i < data.size; i++)
@@ -369,7 +368,7 @@ namespace BigIntegerLib
 	//===========OPERATOREN=================================
 	BigInt& BigInt::operator=(string number)
 	{
-		setNum(number);
+		convertNum(number);
 		return *this;
 	}
 	BigInt& BigInt::operator=(BigInt number)
@@ -703,7 +702,7 @@ namespace BigIntegerLib
 	}
 	//================ENDE OPERATOREN================================
 
-	void BigInt::setNum(string number)
+	/*void BigInt::setNum(string number)
 	{
 		uint64_t pos = 1;
 
@@ -728,18 +727,23 @@ namespace BigIntegerLib
 					pos *= 10;
 			}
 		}
-	}
+	}*/
 
 	void BigInt::convertNum(string number)
 	{
 		size_t i;
-		for(i = number.length(); i > 0; i++)
+		//Reset
+		free(data.number);
+		data.size = 0;
+		data.sign = 1;
+		for (i = 0; i < number.length(); i++)
 		{
-			if(number[i - 1] != '-' && (number[i - 1] > '9' || number[i - 1] < '0')) continue;
-			if(i == 1 && number[i - 1] == '-') data.sign = -1;
-			else if (number[i - 1] != '-')
+			if(number[i] != '-' && (number[i] > '9' || number[i] < '0')) continue;
+			if(i == 0 && number[i] == '-') data.sign = -1;
+			else if (number[i] != '-')
 			{
-				*this * (uint64_t)10 + number[i - 1];
+				*this *= (uint64_t)10;
+				*this += number[i] - '0';
 			}
 		}
 	}
