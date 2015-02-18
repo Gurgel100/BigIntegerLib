@@ -152,7 +152,7 @@ namespace BigIntegerLib
 			for(size_t i = 0; i < MAX(data.size, number.data.size); i++)
 			{
 				uint64_t tmp;
-				if(i == data.size - 1) data.number = (uint64_t*)realloc(data.number, ++data.size + sizeof(uint64_t));
+				if(i == data.size) data.number = (uint64_t*)realloc(data.number, ++data.size + sizeof(uint64_t));
 				tmp = MACRO(i, this) + MACRO(i, &number) + overflow;
 				if(tmp - MACRO(i, this) - overflow != MACRO(i, &number)) overflow = 1;
 				else overflow = 0;
@@ -249,32 +249,49 @@ namespace BigIntegerLib
 
 	void BigInt::mul(const BigInt &number)
 	{
-		//Multiply sign
-		data.sign *= number.data.sign;
 
-		uint64_t overflow = 0;
-		size_t i;
-		for (i = 0; i < number.data.size; i++)
+		//Make a copy
+		BigInt tmp(number);
+
+		//Reset local
+		for (size_t i = 0; i < data.size; i++)
+			data.number[i] = 0;
+		
+		//Set sign
+		data.sign = tmp.data.sign * number.data.sign;
+
+		//Multiply each block with each other
+		for (size_t i = 0; i < tmp.data.size; i++)
 		{
-			if (i >= data.size)
+			for (size_t j = 0; j < number.data.size; j++)
 			{
-				data.number = (uint64_t*)realloc(data.number, (++data.size) * sizeof(uint64_t));
-				data.number[i] = 0;
-			}
-			data.number[i] += overflow;
-			data.number[i] = _umul128(data.number[i], number.data.number[i], &overflow);
-		}
-		if (overflow)
-		{
-			if ( i < data.size)
-			{
-				data.number[i] += i;
-				overflow = 0;
-			}
-			if (overflow)
-			{
-				data.number = (uint64_t*)realloc(data.number, (++data.size) * sizeof(uint64_t));
-				data.number[i] = overflow;
+				uint64_t z, overflow;
+				if (i + j >= data.size)
+				{
+					data.number = (uint64_t*)realloc(data.number, ++data.size * sizeof(uint64_t));
+					data.number[data.size - 1] = 0;
+				}
+				z = _umul128(tmp.data.number[i], number.data.number[j], &overflow);
+				if (data.number[i + j] > UINT64_MAX - z)
+				{
+					overflow++;
+				}
+				data.number[i + j] += z;
+				if (MACRO(i + j + 1, this) > UINT64_MAX - overflow)
+				{
+					if (i + j + 2 >= data.size)
+					{
+						data.number = (uint64_t*)realloc(data.number, ++data.size * sizeof(uint64_t));
+						data.number[data.size - 1] = 0;
+					}
+					data.number[i + j + 2]++;
+				}
+				if (i + j + 1 >= data.size && overflow)
+				{
+					data.number = (uint64_t*)realloc(data.number, ++data.size * sizeof(uint64_t));
+					data.number[data.size - 1] = 0;
+				}
+				data.number[i + j + 1] += overflow;
 			}
 		}
 	}
@@ -284,6 +301,25 @@ namespace BigIntegerLib
 	{
 		//Mul sign
 		data.sign *= number.data.sign;
+		uint64_t overflow = 0;
+		size_t i;
+		for (i = MAX(data.size, number.data.size); i > 0; i--)
+		{
+			if (MACRO(i - 1, &number) != 0)
+			{
+				uint64_t tmp = MACRO(i - 1, this) / MACRO(i - 1, &number);
+				overflow = MACRO(i - 1, this) % MACRO(i - 1, &number);
+			}
+			else
+			{
+
+			}
+		}
+	}
+
+	void BigInt::mod(const BigInt &number)
+	{
+
 	}
 
 
@@ -294,9 +330,9 @@ namespace BigIntegerLib
 		for (size_t i = 0; i < data.size; i++)
 		{
 			size_t nc = 0;
-			for (uint64_t tmp = data.number[i]; tmp != 0; tmp /= 10, nc++)
+			for (BigInt tmp(*this); tmp.data.size == 0 || (tmp.data.size == 1 && tmp.data.number[0] == 0); tmp /= (uint64_t)10, nc++)
 			{
-				uint8_t n = tmp % 10;
+				uint8_t n = (uint8_t)(tmp % 10).toUInt();
 				char c = n + '0';
 				number.insert(0, 1, c);
 			}
@@ -313,7 +349,24 @@ namespace BigIntegerLib
 		return number;
 	}
 
+	int64_t BigInt::toInt()
+	{
+		if (data.size > 0)
+			return (int64_t)data.number[0] * data.sign;
+		else
+			return 0;
+	}
 
+	uint64_t BigInt::toUInt()
+	{
+		if (data.size > 0)
+			return (uint64_t)data.number[0];
+		else
+			return 0;
+	}
+
+
+	//===========OPERATOREN=================================
 	BigInt& BigInt::operator=(string number)
 	{
 		setNum(number);
@@ -375,6 +428,12 @@ namespace BigIntegerLib
 		tmp -= number;
 		return tmp;
 	}
+	BigInt BigInt::operator-(uint64_t number)
+	{
+		BigInt tmp(*this);
+		tmp -= number;
+		return tmp;
+	}
 
 	BigInt& BigInt::operator-=(string &number)
 	{
@@ -385,6 +444,12 @@ namespace BigIntegerLib
 	BigInt& BigInt::operator-=(BigInt &number)
 	{
 		sub(number);
+		return *this;
+	}
+	BigInt& BigInt::operator-=(uint64_t number)
+	{
+		BigInt tmp(number);
+		sub(tmp);
 		return *this;
 	}
 
@@ -437,6 +502,12 @@ namespace BigIntegerLib
 		tmp /= number;
 		return tmp;
 	}
+	BigInt BigInt::operator/(uint64_t number)
+	{
+		BigInt tmp(*this);
+		tmp /= number;
+		return tmp;
+	}
 
 	BigInt& BigInt::operator/=(string &number)
 	{
@@ -449,7 +520,188 @@ namespace BigIntegerLib
 		div(number);
 		return *this;
 	}
+	BigInt& BigInt::operator/=(uint64_t number)
+	{
+		BigInt tmp(number);
+		div(tmp);
+		return *this;
+	}
 
+	BigInt BigInt::operator%(string &number)
+	{
+		BigInt tmp(*this);
+		tmp %= number;
+		return tmp;
+	}
+	BigInt BigInt::operator%(BigInt &number)
+	{
+		BigInt tmp(*this);
+		tmp %= number;
+		return tmp;
+	}
+	BigInt BigInt::operator%(uint64_t number)
+	{
+		BigInt tmp(*this);
+		tmp %= number;
+		return tmp;
+	}
+
+	BigInt& BigInt::operator%=(string &number)
+	{
+		BigInt tmp(number);
+		mod(tmp);
+		return *this;
+	}
+	BigInt& BigInt::operator%=(BigInt &number)
+	{
+		mod(number);
+		return *this;
+	}
+	BigInt& BigInt::operator%=(uint64_t number)
+	{
+		BigInt tmp(number);
+		mod(tmp);
+		return *this;
+	}
+
+	bool BigInt::operator==(BigInt &number)
+	{
+		if (data.sign != number.data.sign)
+			return false;
+		if (data.size != data.size)
+			return false;
+
+		for (size_t i = 0; i < data.size; i++)
+		{
+			if (data.number[i] != number.data.number[i])
+				return false;
+		}
+		return true;
+	}
+	bool BigInt::operator==(string &number)
+	{
+		BigInt tmp(number);
+
+		return *this == tmp;
+	}
+	bool BigInt::operator==(uint64_t number)
+	{
+		BigInt tmp(number);
+
+		return *this == tmp;
+	}
+
+	bool BigInt::operator!=(BigInt &number)
+	{
+		return !(*this == number);
+	}
+	bool BigInt::operator!=(string &number)
+	{
+		BigInt tmp(number);
+
+		return *this != tmp;
+	}
+	bool BigInt::operator!=(uint64_t number)
+	{
+		BigInt tmp(number);
+
+		return *this != tmp;
+	}
+
+	bool BigInt::operator<(BigInt &number)
+	{
+		//Vorzeichen überprüfen
+		if (data.sign < number.data.sign)
+			return true;
+		//Grösse überprüfen
+		if (data.size < number.data.size)
+			return true;
+		if (data.size > number.data.size)
+			return false;
+		
+		for (size_t i = data.size; i > 0; i--)
+		{
+			if (data.number[i - 1] < number.data.number[i - 1])
+				return true;
+		}
+
+		return false;
+	}
+	bool BigInt::operator<(string &number)
+	{
+		BigInt tmp(number);
+		return (*this < tmp);
+	}
+	bool BigInt::operator<(uint64_t number)
+	{
+		BigInt tmp(number);
+		return (*this < tmp);
+	}
+
+	bool BigInt::operator<=(BigInt &number)
+	{
+		if (*this == number)
+			return true;
+		return (*this < number);
+	}
+	bool BigInt::operator<=(string &number)
+	{
+		BigInt tmp(number);
+		return (*this <= tmp);
+	}
+	bool BigInt::operator<=(uint64_t number)
+	{
+		BigInt tmp(number);
+		return (*this <= tmp);
+	}
+
+	bool BigInt::operator>(BigInt &number)
+	{
+		//Vorzeichen überprüfen
+		if (data.sign > number.data.sign)
+			return true;
+		//Grösse überprüfen
+		if (data.size > number.data.size)
+			return true;
+		if (data.size < number.data.size)
+			return false;
+
+		for (size_t i = data.size; i > 0; i--)
+		{
+			if (data.number[i - 1] > number.data.number[i - 1])
+				return true;
+		}
+
+		return false;
+	}
+	bool BigInt::operator>(string &number)
+	{
+		BigInt tmp(number);
+		return (*this > tmp);
+	}
+	bool BigInt::operator>(uint64_t number)
+	{
+		BigInt tmp(number);
+		return (*this > tmp);
+	}
+
+	bool BigInt::operator>=(BigInt &number)
+	{
+		if (*this == number)
+			return true;
+		return (*this > number);
+	}
+	bool BigInt::operator>=(string &number)
+	{
+		BigInt tmp(number);
+		return (*this >= tmp);
+	}
+	bool BigInt::operator>=(uint64_t number)
+	{
+		BigInt tmp(number);
+		return (*this >= tmp);
+	}
+	//================ENDE OPERATOREN================================
 
 	void BigInt::setNum(string number)
 	{

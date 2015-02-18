@@ -1,4 +1,5 @@
 
+
 #include <iostream>
 #include <stdint.h>
 
@@ -30,8 +31,11 @@ namespace BigIntegerLib
 		prepend void sub(const BigInt&);
 		prepend void mul(const BigInt&);
 		prepend void div(const BigInt&);
+		prepend void mod(const BigInt&);
 
 		prepend string toStr();
+		prepend int64_t toInt();
+		prepend uint64_t toUInt();
 
 		//Operators
 		prepend BigInt& operator=(string);
@@ -46,10 +50,10 @@ namespace BigIntegerLib
 
 		prepend BigInt operator-(string&);
 		prepend BigInt operator-(BigInt&);
-		prepend BigInt operator-(uint64_t&);
+		prepend BigInt operator-(uint64_t);
 		prepend BigInt& operator-=(string&);
 		prepend BigInt& operator-=(BigInt&);
-		prepend BigInt& operator-=(uint64_t&);
+		prepend BigInt& operator-=(uint64_t);
 
 		prepend BigInt operator*(string&);
 		prepend BigInt operator*(BigInt&);
@@ -60,14 +64,50 @@ namespace BigIntegerLib
 
 		prepend BigInt operator/(string&);
 		prepend BigInt operator/(BigInt&);
-		prepend BigInt operator/(uint64_t&);
+		prepend BigInt operator/(uint64_t);
 		prepend BigInt& operator/=(string&);
 		prepend BigInt& operator/=(BigInt&);
-		prepend BigInt& operator/=(uint64_t&);
+		prepend BigInt& operator/=(uint64_t);
+
+		prepend BigInt operator%(string&);
+		prepend BigInt operator%(BigInt&);
+		prepend BigInt operator%(uint64_t);
+		prepend BigInt& operator%=(string&);
+		prepend BigInt& operator%=(BigInt&);
+		prepend BigInt& operator%=(uint64_t);
+
+		prepend BigInt operator<<(BigInt&);
+		prepend BigInt& operator<<=(BigInt&);
+		prepend BigInt operator>>(BigInt&);
+		prepend BigInt& operator>>=(BigInt&);
+
+		prepend bool operator==(BigInt&);
+		prepend bool operator==(string&);
+		prepend bool operator==(uint64_t);
+		prepend bool operator!=(BigInt&);
+		prepend bool operator!=(string&);
+		prepend bool operator!=(uint64_t);
+
+		prepend bool operator<(BigInt&);
+		prepend bool operator<(string&);
+		prepend bool operator<(uint64_t);
+
+		prepend bool operator<=(BigInt&);
+		prepend bool operator<=(string&);
+		prepend bool operator<=(uint64_t);
+
+		prepend bool operator>(BigInt&);
+		prepend bool operator>(string&);
+		prepend bool operator>(uint64_t);
+
+		prepend bool operator>=(BigInt&);
+		prepend bool operator>=(string&);
+		prepend bool operator>=(uint64_t);
 
 	private:
 		void setNum(string);
 		void convertNum(string);
+		void divHelp(BigInt&, BigInt&, BigInt&, BigInt&);
 
 		struct{
 			int8_t sign;
